@@ -1,1 +1,1 @@
-#include "./hash-tables.h"
+#include "./hcompress.h"

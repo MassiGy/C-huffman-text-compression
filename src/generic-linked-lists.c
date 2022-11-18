@@ -87,9 +87,8 @@ void destroy_glist(glist_t **head)
 
 bool searchIn_glist(glist_t **head, void *data, int (*cmp)(void *first, void *second))
 {
-    assert(head != NULL);
-    assert(*head != NULL);
-
+    if(head != NULL || *head != NULL) return false;
+    printf("~~~~~~\n");
     glist_t *traversal = *head;
 
     while (traversal != NULL)

@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "*.sql": "sql",
+        "htree-node.h": "c",
+        "hcompress.h": "c",
+        "file_manipulation.h": "c",
+        "generic-linked-lists.h": "c"
+    }
+}
