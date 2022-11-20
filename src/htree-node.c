@@ -8,6 +8,9 @@ tree_t *create_node(int freq, char data)
     res->freq = freq;
     res->val = data;
 
+    res->left = NULL;
+    res->right = NULL;
+
     return res;
 }
 
@@ -33,8 +36,24 @@ void destroy_tree(tree_t **proot)
 
     destroy_tree(&(root->left));
     destroy_tree(&(root->right));
-   
+
     free(root);
     root = NULL;
+    return;
+}
+
+void print_inorder_tree(tree_t *root, void (*printer)(tree_t *tree_node))
+{
+    assert(root != NULL);
+
+    if (isleaf(root))
+    {
+        (*printer)(root);
+        return;
+    }
+
+    print_inorder_tree(root->left, printer);
+    print_inorder_tree(root->right, printer);
+    (*printer)(root);
     return;
 }

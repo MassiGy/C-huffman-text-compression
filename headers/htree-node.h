@@ -12,5 +12,6 @@ struct node
 typedef struct node tree_t;
 
 tree_t *create_node(int freq, char data);
-bool isleaf(tree_t * node);
+bool isleaf(tree_t *node);
+void print_inorder_tree(tree_t *root, void (*printer)(tree_t *tree_node));
 void destroy_tree(tree_t **proot);

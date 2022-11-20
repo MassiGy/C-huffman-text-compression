@@ -1,5 +1,13 @@
 #include "../headers/generic-linked-lists.h"
 
+int get_length_glist(glist_t *head)
+{
+    if (head == NULL)
+        return 0;
+
+    return 1 + get_length_glist(head->next);
+}
+
 void push_glist(glist_t **head, void *val, size_t val_size)
 {
     assert(head != NULL);
@@ -70,6 +78,7 @@ void destroy_glist(glist_t **head)
         temp = temp->next;
 
         // free the head node
+
         free((*head)->data);
         free(*head);
 
@@ -87,8 +96,8 @@ void destroy_glist(glist_t **head)
 
 bool searchIn_glist(glist_t **head, void *data, int (*cmp)(void *first, void *second))
 {
-    if(head != NULL || *head != NULL) return false;
-    printf("~~~~~~\n");
+    if (head == NULL || *head == NULL)
+        return false;
     glist_t *traversal = *head;
 
     while (traversal != NULL)

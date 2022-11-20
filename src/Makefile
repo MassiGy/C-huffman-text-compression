@@ -13,7 +13,8 @@ CC = gcc
 EXE = main
 
 # flags de compilation (CFLAGS) et d'edition de liens (LDFLAGS)
-CFLAGS += -Wall  -MMD -g -O2
+CFLAGS +=   -g 
+# consider adding the warnings -Wall -MMD -O2
 LDFLAGS= #-lm
 
 # regle principale: generer l'executable
