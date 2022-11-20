@@ -45,7 +45,7 @@ This project implements a basic version of the Huffman compression algorithm for
 - At the end, you will end up with a huffman tree, that you will need to store.
 
 
-##### Sustituting the text with the in-tree binary location
+###### Subtituting the text with the in-tree binary location
 - First, go to a leaf, while doing that, store the path to it in the appropriate binary form.
 - Once, on the leaf, insert to a new list the leaf character and its binary path.
 - Redo this for each leaf.
