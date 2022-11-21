@@ -7,6 +7,7 @@ tree_t *create_node(int freq, char data)
 
     res->freq = freq;
     res->val = data;
+    // res->binary_path[0] = "\0"; // no need to do this
 
     res->left = NULL;
     res->right = NULL;

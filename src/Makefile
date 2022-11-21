@@ -1,5 +1,5 @@
 # liste des fichiers source
-SRC = main.c hcompress.c htree-node.c generic-linked-lists.c
+SRC = main.c hcompress.c htree-node.c generic-linked-lists.c stringManipulation.c
 #SRC = $(wildcard *.c)
 
 # liste des fichiers .o et des dependances (mis dans le repertoire build/)

@@ -6,21 +6,22 @@
 ```BASH
     .
     ├── headers
-    │   ├── generic-linked-lists.h
-    │   ├── hcompress.h
-    │   ├── htree.h
-    │   ├── htree-node.h
-    │   ├── main.h
-    │   └── sys_headers.h
+    │   ├── generic-linked-lists.h
+    │   ├── hcompress.h
+    │   ├── htree-node.h
+    │   ├── main.h
+    │   └── sys_headers.h
     ├── README.md
     ├── ressources
+    │   └── init_text.txt
     └── src
         ├── generic-linked-lists.c
         ├── hcompress.c
-        ├── htree.c
         ├── htree-node.c
+        ├── main
         ├── main.c
         └── Makefile
+
 
     3 directories, 13 files
 

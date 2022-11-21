@@ -4,6 +4,8 @@
         "htree-node.h": "c",
         "hcompress.h": "c",
         "file_manipulation.h": "c",
-        "generic-linked-lists.h": "c"
+        "generic-linked-lists.h": "c",
+        "stringmanipulation.h": "c",
+        "sys_headers.h": "c"
     }
 }

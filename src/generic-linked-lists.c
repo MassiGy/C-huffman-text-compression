@@ -94,10 +94,11 @@ void destroy_glist(glist_t **head)
     temp = NULL;
 }
 
-bool searchIn_glist(glist_t **head, void *data, int (*cmp)(void *first, void *second))
+glist_t *searchIn_glist(glist_t **head, void *data, int (*cmp)(void *first, void *second))
 {
     if (head == NULL || *head == NULL)
         return false;
+   
     glist_t *traversal = *head;
 
     while (traversal != NULL)
@@ -105,12 +106,12 @@ bool searchIn_glist(glist_t **head, void *data, int (*cmp)(void *first, void *se
         // compare the elements
         if ((*cmp)(traversal->data, data) == 0)
         {
-            return true;
+            return traversal;
         }
         // increment the traversal
         traversal = traversal->next;
     }
-    return false;
+    return NULL;
 }
 
 glist_t *copy_glist(glist_t *head)

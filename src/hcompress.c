@@ -21,7 +21,7 @@ glist_t *create_chars_freq_list(char *file_name)
         assert(char_node != NULL);
 
         // if it is already on the list, skip and go to the next character
-        bool already_in_list = searchIn_glist(&freq_list, char_node, &tree_node_cmp);
+        bool already_in_list = (searchIn_glist(&freq_list, char_node, &tree_node_cmp) != NULL);
 
         if (already_in_list)
         {
@@ -54,6 +54,16 @@ glist_t *create_chars_freq_list(char *file_name)
     return freq_list;
 }
 
+/**
+ * NOTE: this algorithm is created in such a way that our tree will be formed
+ * via dependencies between the list nodes, basically every node of our list will
+ * have pointers to other nodes in such a manner that the resault is a binary tree.
+ *
+ * CAUTION: as a resault of this impelementation, destroying the list will also destroy
+ * the tree, but the other way around is not true, since, our list is the formal holder of
+ * our tree.
+ *
+ */
 glist_t *create_huffman_tree(glist_t *chars_freq_list)
 {
     assert(chars_freq_list != NULL);
@@ -62,18 +72,16 @@ glist_t *create_huffman_tree(glist_t *chars_freq_list)
     // we will start creating our huffman tree from the first to buttom nodes of the list
 
     glist_t *traversal = chars_freq_list;
-    tree_t *first;
-    tree_t *second;
-    tree_t *local_root;
+    tree_t *first = NULL;
+    tree_t *second = NULL;
+    tree_t *local_root = NULL;
+    glist_t *el_to_insert = NULL;
 
-    while (traversal->next->next != NULL)
+    while (traversal->next != NULL)
     {
 
-       
         first = traversal->data;
         second = traversal->next->data;
-
-      
 
         // set traversal to the rest of the list
         traversal = traversal->next->next;
@@ -95,14 +103,14 @@ glist_t *create_huffman_tree(glist_t *chars_freq_list)
         // now we need to insert back the local_root to the list
 
         // if there is no list left, insert as the unique element.
-        if (traversal->next == NULL)
+        if (traversal == NULL)
         {
-            traversal->next = malloc(sizeof(glist_t));
-            assert(traversal->next != NULL);
+            traversal = malloc(sizeof(glist_t));
+            assert(traversal != NULL);
 
-            traversal->next->data = local_root;
-            traversal->next->data_size = sizeof(tree_t);
-            traversal->next->next = NULL;
+            traversal->data = local_root;
+            traversal->data_size = sizeof(tree_t);
+            traversal->next = NULL;
 
             break;
         }
@@ -116,7 +124,7 @@ glist_t *create_huffman_tree(glist_t *chars_freq_list)
 
         glist_t *temp = walker->next;
 
-        glist_t *el_to_insert = malloc(sizeof(glist_t));
+        el_to_insert = malloc(sizeof(glist_t));
         assert(el_to_insert != NULL);
 
         el_to_insert->data = local_root;
@@ -127,11 +135,91 @@ glist_t *create_huffman_tree(glist_t *chars_freq_list)
     }
 
     // at the end, the last position of traversal on the list will be our tree main root.
+
     return traversal;
 }
 
-glist_t *create_chars_binary_path_list(tree_t *huffman_tree);
-void hcompress_file(glist_t *chars_binary_path_list, char *bin_filename);
+glist_t *create_chars_binary_path_list(tree_t *huffman_tree)
+{
+    assert(huffman_tree != NULL);
+
+    glist_t *binary_paths_list = NULL;
+
+    create_chars_binary_path_list_rec(huffman_tree, &binary_paths_list, "\0");
+
+    return binary_paths_list;
+}
+
+void create_chars_binary_path_list_rec(tree_t *root, glist_t **pbinary_paths_list, char *curr_path)
+{
+    assert(pbinary_paths_list != NULL);
+
+    if (isleaf(root))
+    {
+        tree_t *node = malloc(sizeof(tree_t));
+        strcpy(node->binary_path, curr_path);
+        node->freq = root->freq;
+        node->val = root->val;
+        node->left = NULL;
+        node->right = NULL;
+
+        push_glist(pbinary_paths_list, node, sizeof(tree_t));
+
+        free(node);
+        node = NULL;
+
+        return;
+    }
+
+    char left_binary_path[strlen(curr_path) + 1 + 1]; // +1 for the new bit && +1 for the null terminator
+    strcpy(left_binary_path, curr_path);
+    strcat(left_binary_path, "0");
+
+    char right_binary_path[strlen(curr_path) + 1 + 1];
+    strcpy(right_binary_path, curr_path);
+    strcat(right_binary_path, "1");
+
+    create_chars_binary_path_list_rec(root->left, pbinary_paths_list, left_binary_path); // consider adding my own strcat
+    create_chars_binary_path_list_rec(root->right, pbinary_paths_list, right_binary_path);
+}
+
+void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *bin_filename)
+{
+    assert(chars_binary_path_list != NULL);
+
+    FILE *_compressed_file = fopen(bin_filename, "ab");
+    assert(_compressed_file != NULL);
+
+    FILE *_initial_file = fopen(text_filename, "rt");
+    assert(_initial_file != NULL);
+
+    // read through the text file character by character
+    char charac;
+    tree_t *char_node;
+    glist_t *list_node;
+
+    while (!feof(_initial_file))
+    {
+        fscanf(_initial_file, "%c", charac);
+
+        // find the binary path of the char in the list;
+        char_node = create_node(0, charac);
+
+        list_node = searchIn_glist(&chars_binary_path_list, char_node, &tree_node_cmp);
+
+        free(char_node);
+
+        // replace the char by its binary path, write that down into the bin file
+
+        // we need to convert the binary path stored in the tree_node->binary_path 
+        // into a bit sequecence that will hold the same path representation.
+        
+
+        // fwrite(&, )
+    }
+
+    return;
+}
 void hdecompress_file(tree_t *huffman_tree, char *text_filename);
 
 /** HELPERS*/
@@ -166,5 +254,5 @@ void tree_node_printer(tree_t *node)
 {
     assert(node != NULL);
 
-    printf("@node : charc: %c, freq: %i \n", node->val, node->freq);
+    printf("@node : charc: %c, freq: %i, binary_path: %s \n", node->val, node->freq, node->binary_path);
 }

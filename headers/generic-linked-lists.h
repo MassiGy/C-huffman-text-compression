@@ -13,7 +13,7 @@ typedef struct Node glist_t;
 void push_glist(glist_t **head, void *val, size_t val_size);
 void print_glist(glist_t **head, void (*printer)(void *data));
 void updateAt(glist_t **head, int pos, void *val, size_t val_size);
-bool searchIn_glist(glist_t **head, void *data, int (*cmp)(void *first, void *second));
+glist_t* searchIn_glist(glist_t **head, void *data, int (*cmp)(void *first, void *second));
 int get_length_glist(glist_t *head);
 void destroy_glist(glist_t **head);
 
