@@ -97,7 +97,7 @@ void destroy_glist(glist_t **head)
 glist_t *searchIn_glist(glist_t **head, void *data, int (*cmp)(void *first, void *second))
 {
     if (head == NULL || *head == NULL)
-        return false;
+        return NULL;
    
     glist_t *traversal = *head;
 

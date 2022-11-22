@@ -183,43 +183,85 @@ void create_chars_binary_path_list_rec(tree_t *root, glist_t **pbinary_paths_lis
     create_chars_binary_path_list_rec(root->right, pbinary_paths_list, right_binary_path);
 }
 
+
+
 void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *bin_filename)
 {
     assert(chars_binary_path_list != NULL);
 
-    FILE *_compressed_file = fopen(bin_filename, "ab");
+    FILE *_compressed_file = fopen(bin_filename, "wb");
     assert(_compressed_file != NULL);
 
     FILE *_initial_file = fopen(text_filename, "rt");
     assert(_initial_file != NULL);
 
     // read through the text file character by character
-    char charac;
-    tree_t *char_node;
-    glist_t *list_node;
+    char charac = '\0';
+    tree_t *char_node = NULL;
+    glist_t *list_node = NULL;
+    bit_t *bit_array = NULL;
 
     while (!feof(_initial_file))
     {
-        fscanf(_initial_file, "%c", charac);
+        fscanf(_initial_file, "%c", &charac);
 
         // find the binary path of the char in the list;
         char_node = create_node(0, charac);
 
         list_node = searchIn_glist(&chars_binary_path_list, char_node, &tree_node_cmp);
+        assert(list_node != NULL);
 
         free(char_node);
 
         // replace the char by its binary path, write that down into the bin file
 
-        // we need to convert the binary path stored in the tree_node->binary_path 
+        // we need to convert the binary path stored in the tree_node->binary_path
         // into a bit sequecence that will hold the same path representation.
-        
 
-        // fwrite(&, )
+        int size = strlen(((tree_t *)(list_node->data))->binary_path);
+        // printf("size: %d\n", size);
+
+        bit_array = malloc(sizeof(bit_t) * size);
+        assert(bit_array != NULL);
+
+        for (int counter = 0; counter < size; ++counter)
+        {
+            bit_array[counter].val = 0;
+
+            if (((tree_t *)(list_node->data))->binary_path[counter] == '1')
+                bit_array[counter].val += 1;
+        }
+
+        for (int counter = 0; counter < size; ++counter)
+        {
+            if (bit_array[counter].val == 1)
+            {
+                printf("1");
+            }
+            else if (bit_array[counter].val == 0)
+            {
+                printf("0");
+            }
+        }
+
+
+
+
+        // write this into the binary_file;
+        fwrite(bit_array, sizeof(bit_t), size, _compressed_file);
+
+        // free the bit array
+        free(bit_array);
+        bit_array = NULL;
     }
+    printf("\n");
+
+    fclose(_initial_file);
+    fclose(_compressed_file);
 
     return;
 }
+
 void hdecompress_file(tree_t *huffman_tree, char *text_filename);
 
 /** HELPERS*/

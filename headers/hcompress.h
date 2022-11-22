@@ -1,6 +1,14 @@
 #include "./generic-linked-lists.h"
 #include "./htree-node.h"
 
+struct bit
+{
+    unsigned int val : 1;  // declare an int, but we will only use one bit
+} __attribute__((packed)); // this will tell the compiler to forgo' speed and only concontrate on memroy
+
+typedef struct bit bit_t;
+
+
 glist_t *create_chars_freq_list(char *file_name);
 glist_t *create_huffman_tree(glist_t *chars_freq_list);
 
