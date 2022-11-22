@@ -64,6 +64,7 @@ glist_t *create_chars_freq_list(char *file_name)
  * our tree.
  *
  */
+
 glist_t *create_huffman_tree(glist_t *chars_freq_list)
 {
     assert(chars_freq_list != NULL);
@@ -183,23 +184,46 @@ void create_chars_binary_path_list_rec(tree_t *root, glist_t **pbinary_paths_lis
     create_chars_binary_path_list_rec(root->right, pbinary_paths_list, right_binary_path);
 }
 
-
-
 void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *bin_filename)
 {
     assert(chars_binary_path_list != NULL);
 
-    FILE *_compressed_file = fopen(bin_filename, "wb");
-    assert(_compressed_file != NULL);
-
+    // open the txt file
     FILE *_initial_file = fopen(text_filename, "rt");
     assert(_initial_file != NULL);
 
-    // read through the text file character by character
+    // open the bin file
+    FILE *_compressed_file = fopen(bin_filename, "wb");
+    assert(_compressed_file != NULL);
+
+    // charac will be our current in-txt-file character
     char charac = '\0';
+    // char_node will be our tree node that holds charac, used to search in the list
     tree_t *char_node = NULL;
+    // list_node will be either a specific in-list node or a traversal node
     glist_t *list_node = NULL;
-    bit_t *bit_array = NULL;
+
+    // get the total number of binary digits in the compressed file binary representation
+    list_node = chars_binary_path_list;
+    int total_binary_digits_count = 0;
+
+    while (list_node != NULL)
+    {
+        // the total = char_freq * char_binary_path to its location in the huffman tree
+        total_binary_digits_count += (strlen(((tree_t *)(list_node->data))->binary_path)) * ((tree_t *)(list_node->data))->freq;
+        list_node = list_node->next;
+    }
+
+    // set an blob of bits containing n bits, where n = total_binary_digits_count
+    u_int8_t *bit_feild = malloc(((total_binary_digits_count / 8) + 1) * sizeof(u_int8_t));
+    assert(bit_feild != NULL);
+
+    // clear the bits on the allocated blob
+    for (int i = 0; i < (total_binary_digits_count / 8); ++i)
+        bit_feild[i] = 0;
+
+    // set our base binary wise rigth shift position
+    int actual_next_bit_insert_pos = 1;
 
     while (!feof(_initial_file))
     {
@@ -208,61 +232,37 @@ void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *
         // find the binary path of the char in the list;
         char_node = create_node(0, charac);
 
+        // search for the current charac binary path
         list_node = searchIn_glist(&chars_binary_path_list, char_node, &tree_node_cmp);
         assert(list_node != NULL);
 
         free(char_node);
 
-        // replace the char by its binary path, write that down into the bin file
-
-        // we need to convert the binary path stored in the tree_node->binary_path
-        // into a bit sequecence that will hold the same path representation.
-
+        // get the current charac binary path length
         int size = strlen(((tree_t *)(list_node->data))->binary_path);
-        // printf("size: %d\n", size);
 
-        bit_array = malloc(sizeof(bit_t) * size);
-        assert(bit_array != NULL);
-
+        // push from left ( to rigth ) the current charac binary path as bits, using right bit wise shift
         for (int counter = 0; counter < size; ++counter)
         {
-            bit_array[counter].val = 0;
-
             if (((tree_t *)(list_node->data))->binary_path[counter] == '1')
-                bit_array[counter].val += 1;
+                SET_BIT(*bit_feild, actual_next_bit_insert_pos);
         }
 
-        for (int counter = 0; counter < size; ++counter)
-        {
-            if (bit_array[counter].val == 1)
-            {
-                printf("1");
-            }
-            else if (bit_array[counter].val == 0)
-            {
-                printf("0");
-            }
-        }
-
-
-
-
-        // write this into the binary_file;
-        fwrite(bit_array, sizeof(bit_t), size, _compressed_file);
-
-        // free the bit array
-        free(bit_array);
-        bit_array = NULL;
+        // make the new bit wise rigth shift go further through the for-bits allocated blob
+        actual_next_bit_insert_pos += size;
     }
-    printf("\n");
 
+    // write the for-bits allocated blob into the _compressed_file
+    fwrite(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / 8) + 1, _compressed_file);
+
+    // free the blob
+    free(bit_feild);
+
+    // close the files
     fclose(_initial_file);
     fclose(_compressed_file);
-
     return;
 }
-
-void hdecompress_file(tree_t *huffman_tree, char *text_filename);
 
 /** HELPERS*/
 
@@ -297,4 +297,16 @@ void tree_node_printer(tree_t *node)
     assert(node != NULL);
 
     printf("@node : charc: %c, freq: %i, binary_path: %s \n", node->val, node->freq, node->binary_path);
+}
+
+void print_compression_binary_output(glist_t *chars_binary_paths_list)
+{
+    assert(chars_binary_paths_list != NULL);
+
+    glist_t *traversal = chars_binary_paths_list;
+    while (traversal->next != NULL)
+    {
+        printf("%s", ((tree_t *)(traversal->data))->binary_path);
+        traversal = traversal->next;
+    }
 }
