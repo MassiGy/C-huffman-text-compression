@@ -1,0 +1,2 @@
+[] Check if the file binary representation is the same as the compressed file content
+[] 

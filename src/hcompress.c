@@ -251,9 +251,30 @@ void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *
         // make the new bit wise rigth shift go further through the for-bits allocated blob
         actual_next_bit_insert_pos += size;
     }
+    for (int i = 0; i < (total_binary_digits_count / 8); ++i)
+        printf("%d", bit_feild[i]);
+
+    printf("\n");
+    printf("\n");
 
     // write the for-bits allocated blob into the _compressed_file
     fwrite(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / 8) + 1, _compressed_file);
+
+    // Check if the file binary representation is the same as the compressed file content
+    //  clear the bits on the allocated blob
+    for (int i = 0; i < (total_binary_digits_count / 8); ++i)
+        bit_feild[i] = 0;
+
+    fclose(_compressed_file);
+
+    _compressed_file = fopen(bin_filename, "rb");
+
+    fread(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / 8) + 1, _compressed_file);
+
+    for (int i = 0; i < (total_binary_digits_count / 8); ++i)
+        printf("%u", bit_feild[i]);
+
+    printf("\n");
 
     // free the blob
     free(bit_feild);
@@ -297,16 +318,4 @@ void tree_node_printer(tree_t *node)
     assert(node != NULL);
 
     printf("@node : charc: %c, freq: %i, binary_path: %s \n", node->val, node->freq, node->binary_path);
-}
-
-void print_compression_binary_output(glist_t *chars_binary_paths_list)
-{
-    assert(chars_binary_paths_list != NULL);
-
-    glist_t *traversal = chars_binary_paths_list;
-    while (traversal->next != NULL)
-    {
-        printf("%s", ((tree_t *)(traversal->data))->binary_path);
-        traversal = traversal->next;
-    }
 }

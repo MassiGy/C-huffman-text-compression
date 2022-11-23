@@ -19,8 +19,12 @@ int main(void)
     // print_glist(&binary_paths_list, &tree_node_printer);
     // printf("#########################\n");
 
+    printf("#########################\n");
 
     hcompress_file(binary_paths_list,"../ressources/init_text.txt", "../ressources/compressed.bin");
+    printf("#########################\n");
+
+
 
 
 
