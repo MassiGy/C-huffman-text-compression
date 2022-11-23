@@ -214,6 +214,9 @@ void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *
         list_node = list_node->next;
     }
 
+    // to print the total binary digits that we need to write
+    // printf("total: %d\n", total_binary_digits_count);
+
     // set an blob of bits containing n bits, where n = total_binary_digits_count
     u_int8_t *bit_feild = malloc(((total_binary_digits_count / 8) + 1) * sizeof(u_int8_t));
     assert(bit_feild != NULL);
@@ -241,40 +244,39 @@ void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *
         // get the current charac binary path length
         int size = strlen(((tree_t *)(list_node->data))->binary_path);
 
+        // to print the binary paths of all the characters inside the text file, as they appear
+        // printf("%s", ((tree_t *)(list_node->data))->binary_path);
+
         // push from left ( to rigth ) the current charac binary path as bits, using right bit wise shift
         for (int counter = 0; counter < size; ++counter)
         {
             if (((tree_t *)(list_node->data))->binary_path[counter] == '1')
-                SET_BIT(*bit_feild, actual_next_bit_insert_pos);
+                SET_BIT(bit_feild[actual_next_bit_insert_pos / 8], actual_next_bit_insert_pos % 8);
+
+            actual_next_bit_insert_pos++;
         }
 
         // make the new bit wise rigth shift go further through the for-bits allocated blob
-        actual_next_bit_insert_pos += size;
     }
-    for (int i = 0; i < (total_binary_digits_count / 8); ++i)
-        printf("%d", bit_feild[i]);
+    /*
+    // to print the bitfeild which should be exactly the same as the print result of the binary paths
 
-    printf("\n");
-    printf("\n");
+    printf("\n\n");
+    actual_next_bit_insert_pos = 1;
+    for (int i = 0; i < total_binary_digits_count; ++i)
+    {
+        if (IS_BIT_SET(bit_feild[actual_next_bit_insert_pos / 8], actual_next_bit_insert_pos % 8))
+            printf("1");
+        else
+            printf("0");
+
+        actual_next_bit_insert_pos++;
+    }
+    printf("\n\n");
+    */
 
     // write the for-bits allocated blob into the _compressed_file
     fwrite(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / 8) + 1, _compressed_file);
-
-    // Check if the file binary representation is the same as the compressed file content
-    //  clear the bits on the allocated blob
-    for (int i = 0; i < (total_binary_digits_count / 8); ++i)
-        bit_feild[i] = 0;
-
-    fclose(_compressed_file);
-
-    _compressed_file = fopen(bin_filename, "rb");
-
-    fread(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / 8) + 1, _compressed_file);
-
-    for (int i = 0; i < (total_binary_digits_count / 8); ++i)
-        printf("%u", bit_feild[i]);
-
-    printf("\n");
 
     // free the blob
     free(bit_feild);
@@ -282,6 +284,93 @@ void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *
     // close the files
     fclose(_initial_file);
     fclose(_compressed_file);
+    return;
+}
+
+void hdecompress_file(tree_t *root, glist_t *chars_binary_path_list, char *bin_filename, char *text_filename)
+{
+    assert(root != NULL);
+
+    // open the binary file in read mode
+    FILE *_compressed_file = fopen(bin_filename, "rb");
+    assert(_compressed_file != NULL);
+    // open the text file in writing mode,
+    FILE *_decompressed_file = fopen(text_filename, "wt");
+    assert(_decompressed_file != NULL);
+
+    /*** read the bin_file into a temp.txt file, such as bit 1 will be '1', same for 0 */
+
+    // open the temp.txt file
+    FILE *_temp_file = fopen("./temp.txt", "wt");
+
+    // list_node will be either a specific in-list node or a traversal node
+    glist_t *list_node = NULL;
+
+    // get the total number of binary digits in the compressed file binary representation
+    list_node = chars_binary_path_list;
+    int total_binary_digits_count = 0;
+
+    while (list_node != NULL)
+    {
+        // the total = char_freq * char_binary_path to its location in the huffman tree
+        total_binary_digits_count += (strlen(((tree_t *)(list_node->data))->binary_path)) * ((tree_t *)(list_node->data))->freq;
+        list_node = list_node->next;
+    }
+
+    // to print the total binary digits that we need to write
+    // printf("total: %d\n", total_binary_digits_count);
+
+    // set an blob of bits containing n bits, where n = total_binary_digits_count
+    u_int8_t *bit_feild = malloc(((total_binary_digits_count / 8) + 1) * sizeof(u_int8_t));
+    assert(bit_feild != NULL);
+
+    // clear the bits on the allocated blob
+    for (int i = 0; i < (total_binary_digits_count / 8); ++i)
+        bit_feild[i] = 0;
+
+    // set our base binary wise rigth shift position
+    int actual_next_bit_insert_pos = 1;
+
+    fread(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / 8) + 1, _compressed_file);
+
+    for (int i = 0; i < total_binary_digits_count; ++i)
+    {
+        if (IS_BIT_SET(bit_feild[i / 8], i % 8))
+            fprintf(_temp_file, "%c", '1');
+        else
+            fprintf(_temp_file, "%c", '0');
+    }
+
+    fclose(_temp_file);
+
+    /*** read the temp file char by char, and walktrough the tree at the same time
+     *   each time a leaf is hit write its char
+     */
+    _temp_file = fopen("./temp.txt", "rt");
+
+    char buffer;
+    tree_t *tree_traversal = root;
+    while (!feof(_temp_file))
+    {
+
+        fscanf(_temp_file, "%c", &buffer);
+        if (isleaf(tree_traversal))
+        {
+            fprintf(_decompressed_file, "%c", tree_traversal->val);
+            tree_traversal = root;
+        }
+
+        if (buffer == '1')
+            tree_traversal = tree_traversal->right;
+        if (buffer == '0')
+            tree_traversal = tree_traversal->left;
+    }
+    free(bit_feild);
+    bit_feild = NULL;
+
+    fclose(_temp_file);
+    fclose(_compressed_file);
+    fclose(_decompressed_file);
     return;
 }
 

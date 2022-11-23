@@ -21,12 +21,10 @@ int main(void)
 
     printf("#########################\n");
 
-    hcompress_file(binary_paths_list,"../ressources/init_text.txt", "../ressources/compressed.bin");
+    hcompress_file(binary_paths_list, "../ressources/init_text.txt", "../ressources/compressed.bin");
     printf("#########################\n");
 
-
-
-
+    hdecompress_file(root->data, binary_paths_list, "../ressources/compressed.bin", "../ressources/decompressed_file_text.txt");
 
     // CAUTION: since, our tree is created within our list,
     // destroying the list will also destroy the tree.
@@ -35,8 +33,6 @@ int main(void)
     free(root);
     root = NULL;
     destroy_glist(&binary_paths_list);
-
-
 
     return 0;
 }
