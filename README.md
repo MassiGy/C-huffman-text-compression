@@ -1,4 +1,4 @@
-# C Based Huffman Compression Algorithm Impelementation.
+# C Based Impelementation of Huffman Compression Algorithm.
 
 
 ### File Architecture
@@ -40,7 +40,7 @@ This project implements a basic version of the Huffman compression algorithm for
 - Third, sort the list regarding the frequency.
 - Forth, get the two least, frequency wise, nodes and creat a sub tree, the min will go to the left, and the other one (the max of both) will be the right leaf. 
 - Fifth, link these two leaves with a parent node which will have as data the sum of its sons frequencies.
-- Sixth, remove the these two elements from your list.
+- Sixth, remove  these two elements from your list.
 - Seventh, insert the sub tree to your list, respecting the order of frequencies.
 - Eighth, redo this for each element of your list.
 - At the end, you will end up with a huffman tree, that you will need to store.
@@ -56,10 +56,10 @@ This project implements a basic version of the Huffman compression algorithm for
 
 ##### Decompression Algorithm
 
-- First, get back the huffman tree & the binary file ( the compression resault ).
+- First, get back the huffman tree & the binary file ( the compression result ).
 - Second, walkthough the compressed file bit by bit, using these to traverse the tree.
 - Once, a leaf is hit, write down the character into another txt file. 
-- Redo this until foef.
+- Redo this until END_OF_FILE.
 - Then, the text file will be equal to the initial one.
 
 
