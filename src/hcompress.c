@@ -2,6 +2,7 @@
 
 glist_t *create_chars_freq_list(char *file_name)
 {
+    // open the text file
     FILE *_file_ptr_one = fopen(file_name, "rt");
     assert(_file_ptr_one != NULL);
 
@@ -9,12 +10,12 @@ glist_t *create_chars_freq_list(char *file_name)
     glist_t *freq_list = NULL;
 
     // temp structures
-    char charac;
-    tree_t *char_node;
+    char charac = '\0';
+    tree_t *char_node = NULL;
 
     while (!feof(_file_ptr_one))
     {
-
+        // read char by char
         fscanf(_file_ptr_one, "%c", &charac);
 
         char_node = create_node(0, charac);
@@ -35,12 +36,16 @@ glist_t *create_chars_freq_list(char *file_name)
         char temp;
         FILE *_file_ptr_two = fopen(file_name, "rt"); // open the file in a new stream on the memory
 
-        while (!feof(_file_ptr_two)) // the base pointer is already moved
+        while (!feof(_file_ptr_two))
         {
+            // read char by char
             fscanf(_file_ptr_two, "%c", &temp);
+
+            // if the target charac is found, increment its freq
             if (temp == charac)
                 char_node->freq++;
         }
+        // close the second file stream
         fclose(_file_ptr_two);
 
         // now that we have the charac and its freq, insert a new node to the list containing that
@@ -48,9 +53,8 @@ glist_t *create_chars_freq_list(char *file_name)
         free(char_node);
         char_node = NULL;
     }
-
+    // close the first file stream
     fclose(_file_ptr_one);
-
     return freq_list;
 }
 
@@ -70,8 +74,7 @@ glist_t *create_huffman_tree(glist_t *chars_freq_list)
     assert(chars_freq_list != NULL);
 
     // since our list is sorted on the asc order.
-    // we will start creating our huffman tree from the first to buttom nodes of the list
-
+    // we will start creating our huffman tree from top to buttom
     glist_t *traversal = chars_freq_list;
     tree_t *first = NULL;
     tree_t *second = NULL;
@@ -80,11 +83,11 @@ glist_t *create_huffman_tree(glist_t *chars_freq_list)
 
     while (traversal->next != NULL)
     {
-
+        // grep the first two nodes
         first = traversal->data;
         second = traversal->next->data;
 
-        // set traversal to the rest of the list
+        // set traversal to the rest of the list (third el)
         traversal = traversal->next->next;
 
         // now, for the first time, we will set the left and the right
@@ -102,7 +105,6 @@ glist_t *create_huffman_tree(glist_t *chars_freq_list)
         }
 
         // now we need to insert back the local_root to the list
-
         // if there is no list left, insert as the unique element.
         if (traversal == NULL)
         {
@@ -115,9 +117,10 @@ glist_t *create_huffman_tree(glist_t *chars_freq_list)
 
             break;
         }
+
         // else, insert at the right pos
         glist_t *walker = traversal;
-
+        // either at the end, or if one higher freq is hit.
         while (walker->next != NULL && ((tree_t *)(walker->data))->freq < local_root->freq)
         {
             walker = walker->next;
@@ -136,7 +139,6 @@ glist_t *create_huffman_tree(glist_t *chars_freq_list)
     }
 
     // at the end, the last position of traversal on the list will be our tree main root.
-
     return traversal;
 }
 
@@ -157,7 +159,9 @@ void create_chars_binary_path_list_rec(tree_t *root, glist_t **pbinary_paths_lis
 
     if (isleaf(root))
     {
+        // create a new node, so as the resault list will be seperated from the tree
         tree_t *node = malloc(sizeof(tree_t));
+        // curcial : use strcpy, to stop the copy process at the \0
         strcpy(node->binary_path, curr_path);
         node->freq = root->freq;
         node->val = root->val;
@@ -172,6 +176,10 @@ void create_chars_binary_path_list_rec(tree_t *root, glist_t **pbinary_paths_lis
         return;
     }
 
+    // recursively call the same procedure,
+    // thus, when we go left append '0' to the curr_path
+    // and, when we go right append '1' to the curr_path
+
     char left_binary_path[strlen(curr_path) + 1 + 1]; // +1 for the new bit && +1 for the null terminator
     strcpy(left_binary_path, curr_path);
     strcat(left_binary_path, "0");
@@ -180,7 +188,7 @@ void create_chars_binary_path_list_rec(tree_t *root, glist_t **pbinary_paths_lis
     strcpy(right_binary_path, curr_path);
     strcat(right_binary_path, "1");
 
-    create_chars_binary_path_list_rec(root->left, pbinary_paths_list, left_binary_path); // consider adding my own strcat
+    create_chars_binary_path_list_rec(root->left, pbinary_paths_list, left_binary_path);
     create_chars_binary_path_list_rec(root->right, pbinary_paths_list, right_binary_path);
 }
 
@@ -218,11 +226,11 @@ void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *
     // printf("total: %d\n", total_binary_digits_count);
 
     // set an blob of bits containing n bits, where n = total_binary_digits_count
-    u_int8_t *bit_feild = malloc(((total_binary_digits_count / 8) + 1) * sizeof(u_int8_t));
+    u_int8_t *bit_feild = malloc(((total_binary_digits_count / sizeof(u_int8_t)) + 1) * sizeof(u_int8_t));
     assert(bit_feild != NULL);
 
     // clear the bits on the allocated blob
-    for (int i = 0; i < (total_binary_digits_count / 8); ++i)
+    for (int i = 0; i < (total_binary_digits_count / sizeof(u_int8_t)) + 1; ++i)
         bit_feild[i] = 0;
 
     // set our base binary wise rigth shift position
@@ -251,12 +259,11 @@ void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *
         for (int counter = 0; counter < size; ++counter)
         {
             if (((tree_t *)(list_node->data))->binary_path[counter] == '1')
-                SET_BIT(bit_feild[actual_next_bit_insert_pos / 8], actual_next_bit_insert_pos % 8);
+                SET_BIT(bit_feild[actual_next_bit_insert_pos / sizeof(u_int8_t)], actual_next_bit_insert_pos % sizeof(u_int8_t));
 
+            // make the new bit wise rigth shift go further through the for-bits allocated blob
             actual_next_bit_insert_pos++;
         }
-
-        // make the new bit wise rigth shift go further through the for-bits allocated blob
     }
     /*
     // to print the bitfeild which should be exactly the same as the print result of the binary paths
@@ -276,7 +283,7 @@ void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *
     */
 
     // write the for-bits allocated blob into the _compressed_file
-    fwrite(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / 8) + 1, _compressed_file);
+    fwrite(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / sizeof(u_int8_t)) + 1, _compressed_file);
 
     // free the blob
     free(bit_feild);
@@ -294,6 +301,7 @@ void hdecompress_file(tree_t *root, glist_t *chars_binary_path_list, char *bin_f
     // open the binary file in read mode
     FILE *_compressed_file = fopen(bin_filename, "rb");
     assert(_compressed_file != NULL);
+
     // open the text file in writing mode,
     FILE *_decompressed_file = fopen(text_filename, "wt");
     assert(_decompressed_file != NULL);
@@ -321,21 +329,21 @@ void hdecompress_file(tree_t *root, glist_t *chars_binary_path_list, char *bin_f
     // printf("total: %d\n", total_binary_digits_count);
 
     // set an blob of bits containing n bits, where n = total_binary_digits_count
-    u_int8_t *bit_feild = malloc(((total_binary_digits_count / 8) + 1) * sizeof(u_int8_t));
+    u_int8_t *bit_feild = malloc(((total_binary_digits_count / sizeof(u_int8_t)) + 1) * sizeof(u_int8_t));
     assert(bit_feild != NULL);
 
     // clear the bits on the allocated blob
-    for (int i = 0; i < (total_binary_digits_count / 8); ++i)
+    for (int i = 0; i < (total_binary_digits_count / sizeof(u_int8_t)) + 1; ++i)
         bit_feild[i] = 0;
 
     // set our base binary wise rigth shift position
     int actual_next_bit_insert_pos = 1;
 
-    fread(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / 8) + 1, _compressed_file);
+    fread(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / sizeof(u_int8_t)) + 1, _compressed_file);
 
     for (int i = 0; i < total_binary_digits_count; ++i)
     {
-        if (IS_BIT_SET(bit_feild[i / 8], i % 8))
+        if (IS_BIT_SET(bit_feild[i / sizeof(u_int8_t)], i % sizeof(u_int8_t)))
             fprintf(_temp_file, "%c", '1');
         else
             fprintf(_temp_file, "%c", '0');
@@ -348,7 +356,7 @@ void hdecompress_file(tree_t *root, glist_t *chars_binary_path_list, char *bin_f
      */
     _temp_file = fopen("./temp.txt", "rt");
 
-    char buffer;
+    char buffer = '\0';
     tree_t *tree_traversal = root;
     while (!feof(_temp_file))
     {
@@ -365,6 +373,7 @@ void hdecompress_file(tree_t *root, glist_t *chars_binary_path_list, char *bin_f
         if (buffer == '0')
             tree_traversal = tree_traversal->left;
     }
+    // free the blob
     free(bit_feild);
     bit_feild = NULL;
 
