@@ -226,11 +226,11 @@ void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *
     // printf("total: %d\n", total_binary_digits_count);
 
     // set an blob of bits containing n bits, where n = total_binary_digits_count
-    u_int8_t *bit_feild = malloc(((total_binary_digits_count / sizeof(u_int8_t)) + 1) * sizeof(u_int8_t));
+    u_int8_t *bit_feild = malloc(((total_binary_digits_count / (sizeof(char) * 8)) + 1) * (sizeof(char) * 8));
     assert(bit_feild != NULL);
 
     // clear the bits on the allocated blob
-    for (int i = 0; i < (total_binary_digits_count / sizeof(u_int8_t)) + 1; ++i)
+    for (int i = 0; i < (total_binary_digits_count / (sizeof(char) * 8)) + 1; ++i)
         bit_feild[i] = 0;
 
     // set our base binary wise rigth shift position
@@ -259,7 +259,7 @@ void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *
         for (int counter = 0; counter < size; ++counter)
         {
             if (((tree_t *)(list_node->data))->binary_path[counter] == '1')
-                SET_BIT(bit_feild[actual_next_bit_insert_pos / sizeof(u_int8_t)], actual_next_bit_insert_pos % sizeof(u_int8_t));
+                SET_BIT(bit_feild[actual_next_bit_insert_pos / (sizeof(char) * 8)], actual_next_bit_insert_pos % (sizeof(char) * 8));
 
             // make the new bit wise rigth shift go further through the for-bits allocated blob
             actual_next_bit_insert_pos++;
@@ -283,7 +283,7 @@ void hcompress_file(glist_t *chars_binary_path_list, char *text_filename, char *
     */
 
     // write the for-bits allocated blob into the _compressed_file
-    fwrite(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / sizeof(u_int8_t)) + 1, _compressed_file);
+    fwrite(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / (sizeof(char) * 8)) + 1, _compressed_file);
 
     // free the blob
     free(bit_feild);
@@ -329,21 +329,21 @@ void hdecompress_file(tree_t *root, glist_t *chars_binary_path_list, char *bin_f
     // printf("total: %d\n", total_binary_digits_count);
 
     // set an blob of bits containing n bits, where n = total_binary_digits_count
-    u_int8_t *bit_feild = malloc(((total_binary_digits_count / sizeof(u_int8_t)) + 1) * sizeof(u_int8_t));
+    u_int8_t *bit_feild = malloc(((total_binary_digits_count / (sizeof(char) * 8)) + 1) * (sizeof(char) * 8));
     assert(bit_feild != NULL);
 
     // clear the bits on the allocated blob
-    for (int i = 0; i < (total_binary_digits_count / sizeof(u_int8_t)) + 1; ++i)
+    for (int i = 0; i < (total_binary_digits_count / (sizeof(char) * 8)) + 1; ++i)
         bit_feild[i] = 0;
 
     // set our base binary wise rigth shift position
     int actual_next_bit_insert_pos = 1;
 
-    fread(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / sizeof(u_int8_t)) + 1, _compressed_file);
+    fread(bit_feild, sizeof(u_int8_t), (total_binary_digits_count / (sizeof(char) * 8)) + 1, _compressed_file);
 
     for (int i = 0; i < total_binary_digits_count; ++i)
     {
-        if (IS_BIT_SET(bit_feild[i / sizeof(u_int8_t)], i % sizeof(u_int8_t)))
+        if (IS_BIT_SET(bit_feild[i / (sizeof(char) * 8)], i % (sizeof(char) * 8)))
             fprintf(_temp_file, "%c", '1');
         else
             fprintf(_temp_file, "%c", '0');
