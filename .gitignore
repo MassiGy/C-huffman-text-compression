@@ -1,3 +1,4 @@
 .vscode/*
 ./src/build/*
 ./src/trash.txt
+src/main
